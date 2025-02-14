@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Clock with Alarm</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+  
+  body {
+    font-family: 'Orbitron', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #0f0f0f;
+    color: #00ffcc;
+    transition: background 0.5s ease, color 0.5s ease;
+  }
+
+  /* Temas */
+  body.modo-oscuro {
+    background: #0f0f0f;
+    color: #00ffcc;
+  }
+
+  body.modo-claro {
+    background: #f0f0f0;
+    color: #333;
+  }
+
+  body.modo-verde {
+    background: #1a2e1a;
+    color: #00ff88;
+  }
+
+  body.modo-azul {
+    background: #0a1a2a;
+    color: #00aaff;
+  }
+
+  .container {
+    text-align: center;
+  }
+
+  #clock {
+    font-size: 4rem;
+    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+    margin-bottom: 20px;
+  }
+
+  #analog-clock {
+    width: 200px;
+    height: 200px;
+    border: 5px solid #00ffcc;
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 20px #00ffcc;
+  }
+
+  .hand {
+    position: absolute;
+    background: #00ffcc;
+    transform-origin: bottom center;
+    box-shadow: 0 0 5px #00ffcc;
+  }
+
+  #hour-hand {
+    width: 4px;
+    height: 60px;
+    top: 40px;
+    left: 98px;
+  }
+
+  #minute-hand {
+    width: 3px;
+    height: 80px;
+    top: 20px;
+    left: 98.5px;
+  }
+
+  #second-hand {
+    width: 2px;
+    height: 90px;
+    top: 10px;
+    left: 99px;
+    background: #ff0066;
+    box-shadow: 0 0 5px #ff0066;
+  }
+
+  #alarm {
+    margin-top: 20px;
+  }
+
+  #alarm input {
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    background: transparent;
+    color: inherit;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  #setAlarmButton {
+    padding: 5px 10px;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  #setAlarmButton:hover {
+    background: #00ffcc;
+    color: #0f0f0f;
+  }
+
+  #alarmList {
+    margin-top: 20px;
+    max-height: 100px;
+    overflow-y: auto;
+  }
+
+  .alarm-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    background: rgba(0, 255, 204, 0.1);
+  }
+
+  .alarm-item button {
+    background: #ff0066;
+    border: none;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .alarm-item button:hover {
+    background: #cc0052;
+  }
+
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    background: #ff0066;
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #ff0066;
+    display: none;
+  }
+
+  #themeSelector {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 5px;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+  }
+</style>
+</head>
+<body class="modo-oscuro"> <!-- Modo oscuro por defecto -->
+<div class="container">
+  <div id="clock">00:00:00</div>
+  <div id="analog-clock">
+    <div id="hour-hand" class="hand"></div>
+    <div id="minute-hand" class="hand"></div>
+    <div id="second-hand" class="hand"></div>
+  </div>
+  <div id="alarm">
+    <input type="time" id="alarmTime" placeholder="Set Alarm Time">
+    <input type="text" id="alarmMessage" placeholder="Enter Alarm Message">
+    <button id="setAlarmButton">Set Alarm</button>
+  </div>
+  <div id="alarmList"></div>
+</div>
+<div id="notification" class="notification">¡Es hora de levantarse!</div>
+
+<!-- Selector de temas -->
+<select id="themeSelector">
+  <option value="oscuro">Modo Oscuro</option>
+  <option value="claro">Modo Claro</option>
+  <option value="verde">Modo Verde</option>
+  <option value="azul">Modo Azul</option>
+</select>
+
+<script>
+  let alarms = [];
+
+  // Actualizar el reloj
+  function updateClock() {
+    const now = new Date();
+    const clockElement = document.getElementById('clock');
+    const hourHand = document.getElementById('hour-hand');
+    const minuteHand = document.getElementById('minute-hand');
+    const secondHand = document.getElementById('second-hand');
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+
+    // Mover las manecillas del reloj analógico
+    const hourDeg = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5;
+    const minuteDeg = now.getMinutes() * 6 + now.getSeconds() * 0.1;
+    const secondDeg = now.getSeconds() * 6;
+
+    hourHand.style.transform = `rotate(${hourDeg}deg)`;
+    minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+    secondHand.style.transform = `rotate(${secondDeg}deg)`;
+
+    // Verificar si alguna alarma debe sonar
+    alarms.forEach((alarm, index) => {
+      const currentTime = `${hours}:${minutes}`;
+      if (currentTime === alarm.time) {
+        showNotification(alarm.message);
+        speak(alarm.message);
+        alarms.splice(index, 1);  // Eliminar la alarma después de que suene
+        renderAlarms();
+      }
+    });
+  }
+
+  // Establecer una alarma
+  function setAlarm() {
+    const alarmInput = document.getElementById('alarmTime');
+    const messageInput = document.getElementById('alarmMessage');
+    const alarmTime = alarmInput.value;
+    const alarmMessage = messageInput.value || "¡Despierta! Es hora de levantarse!";
+
+    if (alarmTime) {
+      const now = new Date();
+      const [alarmHours, alarmMinutes] = alarmTime.split(':');
+      const alarmDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), alarmHours, alarmMinutes);
+
+      if (alarmDate > now) {
+        alarms.push({ time: alarmTime, message: alarmMessage });
+        renderAlarms();
+        alert(`Alarma configurada para las ${alarmTime} con el mensaje: "${alarmMessage}"`);
+      } else {
+        alert("Por favor, selecciona una hora en el futuro.");
+      }
+    }
+  }
+
+  // Renderizar la lista de alarmas
+  function renderAlarms() {
+    const alarmList = document.getElementById('alarmList');
+    alarmList.innerHTML = alarms.map((alarm, index) => `
+      <div class="alarm-item">
+        <span>${alarm.time} - ${alarm.message}</span>
+        <button onclick="deleteAlarm(${index})">Eliminar</button>
+      </div>
+    `).join('');
+  }
+
+  // Eliminar una alarma
+  function deleteAlarm(index) {
+    alarms.splice(index, 1);
+    renderAlarms();
+  }
+
+  // Mostrar notificación
+  function showNotification(message) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.style.display = 'block';
+    setTimeout(() => {
+      notification.style.display = 'none';
+    }, 5000);
+  }
+
+  // Leer el mensaje de la alarma
+  function speak(message) {
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = 'es-ES';  // Configurar el idioma a español
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Cambiar el tema
+  function changeTheme(theme) {
+    document.body.className = `modo-${theme}`;
+  }
+
+  // Eventos
+  document.getElementById('setAlarmButton').addEventListener('click', setAlarm);
+  document.getElementById('themeSelector').addEventListener('change', (e) => {
+    changeTheme(e.target.value);
+  });
+
+  // Actualizar el reloj cada segundo
+  setInterval(updateClock, 1000);
+  updateClock();  // Mostrar el reloj inmediatamente
+</script>
+</body>
+</html>
