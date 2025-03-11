@@ -16,7 +16,28 @@
     margin: 0;
     background: #0f0f0f;
     color: #00ffcc;
-    transition: background 0.5s ease, color 0.5s ease;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Fondo animado con partículas */
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, transparent 20%, #0f0f0f 20%, #0f0f0f 80%, transparent 80%, transparent),
+                radial-gradient(circle, transparent 20%, #0f0f0f 20%, #0f0f0f 80%, transparent 80%, transparent) 50px 50px;
+    background-size: 100px 100px;
+    animation: moveBackground 10s linear infinite;
+    z-index: -1;
+  }
+
+  @keyframes moveBackground {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(100px); }
   }
 
   /* Temas */
@@ -42,12 +63,23 @@
 
   .container {
     text-align: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+    backdrop-filter: blur(10px);
   }
 
   #clock {
     font-size: 4rem;
-    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 40px #00ffcc;
     margin-bottom: 20px;
+    animation: glow 1.5s infinite alternate;
+  }
+
+  @keyframes glow {
+    0% { text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 40px #00ffcc; }
+    100% { text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc, 0 0 60px #00ffcc; }
   }
 
   #analog-clock {
@@ -65,6 +97,7 @@
     background: #00ffcc;
     transform-origin: bottom center;
     box-shadow: 0 0 5px #00ffcc;
+    transition: transform 0.5s cubic-bezier(0.4, 2.3, 0.8, 1);
   }
 
   #hour-hand {
@@ -112,12 +145,13 @@
     color: inherit;
     cursor: pointer;
     font-family: 'Orbitron', sans-serif;
-    transition: background 0.3s ease, color 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
   }
 
   #setAlarmButton:hover {
     background: #00ffcc;
     color: #0f0f0f;
+    transform: scale(1.1);
   }
 
   #alarmList {
@@ -135,6 +169,11 @@
     border-radius: 5px;
     margin-bottom: 5px;
     background: rgba(0, 255, 204, 0.1);
+    transition: transform 0.3s ease;
+  }
+
+  .alarm-item:hover {
+    transform: scale(1.02);
   }
 
   .alarm-item button {
@@ -144,6 +183,7 @@
     padding: 2px 5px;
     border-radius: 3px;
     cursor: pointer;
+    transition: background 0.3s ease;
   }
 
   .alarm-item button:hover {
@@ -160,6 +200,17 @@
     border-radius: 5px;
     box-shadow: 0 0 10px #ff0066;
     display: none;
+    animation: slideIn 0.5s ease, fadeOut 0.5s ease 4.5s;
+  }
+
+  @keyframes slideIn {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(0); }
+  }
+
+  @keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
   }
 
   #themeSelector {
@@ -173,6 +224,12 @@
     color: inherit;
     cursor: pointer;
     font-family: 'Orbitron', sans-serif;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  #themeSelector:hover {
+    background: #00ffcc;
+    color: #0f0f0f;
   }
 </style>
 </head>
